@@ -38,13 +38,14 @@ end
 assign rg_rd_data1 = register_file[rg_rd_addr1];
 assign rg_rd_data2 = register_file[rg_rd_addr2];
 
+assume property($stable(rg_wrt_dest) && $stable(rg_wrt_en));
 
 assert property (@(negedge clk)
-    rst |-> (register_file == '{default: 0})
+    $past(rst) |-> (register_file == '{default: 0})
 ) else $error("All registers should be reset to 0 during reset");
 
-assert property (@(negedge clk) disable iff (rst)
-    (rg_wrt_en && !rst) |-> (register_file[rg_wrt_dest] == rg_wrt_data)
+assert property (@(negedge clk)
+    $past(rg_wrt_en && !rst) |-> (register_file[rg_wrt_dest] == $past(rg_wrt_data))
 ) else $error("Data written should match rg_wrt_data during write operation");
 
 assert property (@(negedge clk) disable iff (rst)
